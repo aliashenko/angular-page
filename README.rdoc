@@ -1,28 +1,25 @@
-== README
+== CORS
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+Backend Implementation
 
-Things you may want to cover:
+To enable CORS we have to set some HTTP headers.
+  after_action :cors_set_access_control_headers
 
-* Ruby version
+  def cors_preflight_check
+    headers['Access-Control-Allow-Origin'] = '*'
+    headers['Access-Control-Allow-Methods'] = 'GET, POST, PATCH, PUT, DELETE, OPTIONS, HEAD'
+    headers['Access-Control-Allow-Headers'] = 'X-Requested-With, X-Prototype-Version, Origin, Accept, Content-Type, Authorization'
+    headers['Access-Control-Max-Age'] = '1728000'
+    render json: {}, status: 200
+  end
+  
+  # For all responses in this controller, return the CORS access control headers.
+  def cors_set_access_control_headers
+    headers['Access-Control-Allow-Origin'] = '*'
+    headers['Access-Control-Allow-Methods'] = 'GET, POST, PATCH, PUT, DELETE, OPTIONS, HEAD'
+    headers['Access-Control-Max-Age'] = "1728000"
+  end
 
-* System dependencies
+We have to set a route in <tt>routes.rb</tt>. This is simple: We just have to make sure every request with the OPTIONS method goes to the cors_preflight_check action of the BaseController:
 
-* Configuration
-
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
-
-
-Please feel free to use a different markup language if you do not plan to run
-<tt>rake doc:app</tt>.
+<tt>match '*path', to: 'base#cors_preflight_check', constraints: {method: 'OPTIONS'}, via: [:get, :options, :put, :post, :delete]</tt>
